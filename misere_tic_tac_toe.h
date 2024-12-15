@@ -3,6 +3,7 @@
 
 #include "BoardGame_Classes.h"
 
+Player<char>* Globalptr[2];
 template <typename T>
 class misere_tic_tac_toe_board : public Board<T> {
 public:
@@ -12,6 +13,7 @@ public:
     bool is_win();
     bool is_draw();
     bool game_is_over();
+    int count_three_in_a_row(char symbol);
 };
 
 template <typename T>
@@ -31,6 +33,7 @@ public:
 #include <iostream>
 #include <iomanip>
 #include <cctype>
+#include <string>
 
 using namespace std;
 
@@ -45,9 +48,8 @@ misere_tic_tac_toe_board<T>::misere_tic_tac_toe_board() {
         }
     }
     this->n_moves = 0;
-    string temp_name = player1->getname();
-    player1->setname(player2->getname());
-    player2->setname(temp_name);
+    Globalptr[0] = player1;
+    Globalptr[1] = player2;
 }
 
 template <typename T>
@@ -80,39 +82,63 @@ void misere_tic_tac_toe_board<T>::display_board() {
 
 template <typename T>
 bool misere_tic_tac_toe_board<T>::is_win() {
-    // Check for rows and columns
-    for (int i = 0; i < this->rows; i++) {
-        if ((this->board[i][0] == this->board[i][1] && this->board[i][1] == this->board[i][2] && this->board[i][0] != 0) ||
-            (this->board[0][i] == this->board[1][i] && this->board[1][i] == this->board[2][i] && this->board[0][i] != 0)) {
-            
-            // If Player X wins, Player O is the winner, and vice versa
-            cout << "The winner is: " << (this->board[i][0] != 0 ? player2->getname() : player1->getname()) << endl;
-            return true;
+    int countX = count_three_in_a_row('X');
+    int countO = count_three_in_a_row('O');
+
+    if (countX > 0) {
+        cout << "The winner is: " << Globalptr[1]->getname() << " (Player O wins!)\n";
+        return true;
+    } else if (countO > 0) {
+        cout << "The winner is: " << Globalptr[0]->getname() << " (Player X wins!)\n";
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template <typename T>
+int misere_tic_tac_toe_board<T>::count_three_in_a_row(char symbol) {
+    int count = 0;
+    for (int i = 0; i < this->rows; ++i) {
+        for (int j = 0; j < this->columns - 2; ++j) {
+            if (this->board[i][j] == symbol && this->board[i][j + 1] == symbol && this->board[i][j + 2] == symbol) {
+                count++;
+            }
+        }
+    }
+    for (int i = 0; i < this->rows - 2; ++i) {
+        for (int j = 0; j < this->columns; ++j) {
+            if (this->board[i][j] == symbol && this->board[i + 1][j] == symbol && this->board[i + 2][j] == symbol) {
+                count++;
+            }
+        }
+    }
+    for (int i = 0; i < this->rows - 2; ++i) {
+        for (int j = 0; j < this->columns - 2; ++j) {
+            if (this->board[i][j] == symbol && this->board[i + 1][j + 1] == symbol && this->board[i + 2][j + 2] == symbol) {
+                count++;
+            }
+        }
+    }
+    for (int i = 0; i < this->rows - 2; ++i) {
+        for (int j = 2; j < this->columns; ++j) {
+            if (this->board[i][j] == symbol && this->board[i + 1][j - 1] == symbol && this->board[i + 2][j - 2] == symbol) {
+                count++;
+            }
         }
     }
 
-    // Check diagonals
-    if ((this->board[0][0] == this->board[1][1] && this->board[1][1] == this->board[2][2] && this->board[0][0] != 0) ||
-        (this->board[0][2] == this->board[1][1] && this->board[1][1] == this->board[2][0] && this->board[0][2] != 0)) {
-        
-        // If Player X wins, Player O is the winner, and vice versa
-        cout << "The winner is: " << (this->board[0][0] != 0 ? player2->getname() : player1->getname()) << endl;
-        return true;
-    }
-    
-    return false;
+    return count;
 }
 
 template <typename T>
 bool misere_tic_tac_toe_board<T>::is_draw() {
-    return (this->n_moves == 9 && is_win());
+    return (this->n_moves == 9 && !is_win());
 }
-
 template <typename T>
 bool misere_tic_tac_toe_board<T>::game_is_over() {
-    return !is_win() || is_draw();
+    return is_win() || is_draw();
 }
-
 template <typename T>
 player<T>::player(string name, T symbol) : Player<T>(name, symbol) {}
 
