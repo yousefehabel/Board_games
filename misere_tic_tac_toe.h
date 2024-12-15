@@ -13,20 +13,21 @@ public:
     bool is_win();
     bool is_draw();
     bool game_is_over();
-    int count_three_in_a_row(char symbol);
+    int get_n_moves();
+
 };
 
 template <typename T>
-class player : public Player<T> {
+class misere_tic_tac_toe_player : public Player<T> {
 public:
-	player (string name, T symbol);
+	misere_tic_tac_toe_player (string name, T symbol);
 	void getmove(int& x, int& y) ;
 };
 
 template <typename T>
-class random_Player : public RandomPlayer<T> {
+class misere_tic_tac_toe_random_player : public RandomPlayer<T> {
 public:
-    random_Player(T symbol);
+    misere_tic_tac_toe_random_player(T symbol);
     void getmove(int& x, int& y);
 };
 
@@ -48,12 +49,12 @@ misere_tic_tac_toe_board<T>::misere_tic_tac_toe_board() {
         }
     }
     this->n_moves = 0;
-    Globalptr[0] = player1;
-    Globalptr[1] = player2;
 }
-
 template <typename T>
 bool misere_tic_tac_toe_board<T>::update_board(int x, int y, T mark) {
+    if (this->n_moves < 0) {
+        return true;
+    }
     if (!(x < 0 || x >= this->rows || y < 0 || y >= this->columns) && (this->board[x][y] == 0 || mark == 0)) {
         if (mark == 0) {
             this->n_moves--;
@@ -69,67 +70,49 @@ bool misere_tic_tac_toe_board<T>::update_board(int x, int y, T mark) {
 
 template <typename T>
 void misere_tic_tac_toe_board<T>::display_board() {
-    for (int i = 0; i < this->rows; i++) {
-        cout << "\n| ";
-        for (int j = 0; j < this->columns; j++) {
-            cout << "(" << i << "," << j << ")";
-            cout << setw(2) << this->board[i][j] << " |";
+    if (this->n_moves >= 0) {
+        for (int i = 0; i < this->rows; ++i) {
+            cout << "\n+--------+--------+--------+\n";
+            for (int j = 0; j < this->columns; ++j) {
+                if (j == 0) cout << "|";
+                cout << setw(2) << "(" << i << "," << j << ")" << this->board[i][j] << " |";
+            }
+            if (i == 2) {
+                cout << "\n+--------+--------+--------+\n";
+            }
         }
-        cout << "\n-----------------------------";
     }
-    cout << endl;
+}
+
+template<typename T>
+int misere_tic_tac_toe_board<T>::get_n_moves() {
+    return this->n_moves;
 }
 
 template <typename T>
 bool misere_tic_tac_toe_board<T>::is_win() {
-    int countX = count_three_in_a_row('X');
-    int countO = count_three_in_a_row('O');
+    if (this->n_moves < 0) {
+        return true;
+    }
+    // Check rows and columns
+    for (int i = 0; i < this->rows; i++) {
+        if ((this->board[i][0] == this->board[i][1] && this->board[i][1] == this->board[i][2] && this->board[i][0] != 0) ||
+            (this->board[0][i] == this->board[1][i] && this->board[1][i] == this->board[2][i] && this->board[0][i] != 0)) {
+            this->n_moves *= -1;
+            return false;
+            }
+    }
 
-    if (countX > 0) {
-        cout << "The winner is: " << Globalptr[1]->getname() << " (Player O wins!)\n";
-        return true;
-    } else if (countO > 0) {
-        cout << "The winner is: " << Globalptr[0]->getname() << " (Player X wins!)\n";
-        return true;
-    } else {
+    // Check diagonals
+    if ((this->board[0][0] == this->board[1][1] && this->board[1][1] == this->board[2][2] && this->board[0][0] != 0) ||
+        (this->board[0][2] == this->board[1][1] && this->board[1][1] == this->board[2][0] && this->board[0][2] != 0)) {
+        this->n_moves *= -1;
         return false;
-    }
+        }
+
+    return false;
 }
 
-template <typename T>
-int misere_tic_tac_toe_board<T>::count_three_in_a_row(char symbol) {
-    int count = 0;
-    for (int i = 0; i < this->rows; ++i) {
-        for (int j = 0; j < this->columns - 2; ++j) {
-            if (this->board[i][j] == symbol && this->board[i][j + 1] == symbol && this->board[i][j + 2] == symbol) {
-                count++;
-            }
-        }
-    }
-    for (int i = 0; i < this->rows - 2; ++i) {
-        for (int j = 0; j < this->columns; ++j) {
-            if (this->board[i][j] == symbol && this->board[i + 1][j] == symbol && this->board[i + 2][j] == symbol) {
-                count++;
-            }
-        }
-    }
-    for (int i = 0; i < this->rows - 2; ++i) {
-        for (int j = 0; j < this->columns - 2; ++j) {
-            if (this->board[i][j] == symbol && this->board[i + 1][j + 1] == symbol && this->board[i + 2][j + 2] == symbol) {
-                count++;
-            }
-        }
-    }
-    for (int i = 0; i < this->rows - 2; ++i) {
-        for (int j = 2; j < this->columns; ++j) {
-            if (this->board[i][j] == symbol && this->board[i + 1][j - 1] == symbol && this->board[i + 2][j - 2] == symbol) {
-                count++;
-            }
-        }
-    }
-
-    return count;
-}
 
 template <typename T>
 bool misere_tic_tac_toe_board<T>::is_draw() {
@@ -137,29 +120,37 @@ bool misere_tic_tac_toe_board<T>::is_draw() {
 }
 template <typename T>
 bool misere_tic_tac_toe_board<T>::game_is_over() {
+    if (this->n_moves < 0) {
+        return false;
+    }
     return is_win() || is_draw();
 }
 template <typename T>
-player<T>::player(string name, T symbol) : Player<T>(name, symbol) {}
+misere_tic_tac_toe_player<T>::misere_tic_tac_toe_player(string name, T symbol) : Player<T>(name, symbol) {}
 
 template <typename T>
-void player<T>::getmove(int& x, int& y) {
-    cout << "\nPlease enter your move x and y (0 to 2) separated by spaces: ";
-    cin >> x >> y;
+void misere_tic_tac_toe_player<T>::getmove(int& x, int& y) {
+    if (dynamic_cast<misere_tic_tac_toe_board<T>*>(this->boardPtr)->get_n_moves() < 0) {
+        x = 0, y = 0;
+    }
+    else {
+        cout << "\nPlease enter your move x and y separated by spaces: ";
+        cin >> x >> y;
+    }
 }
 
 template <typename T>
-random_Player<T>::random_Player(T symbol) : RandomPlayer<T>(symbol) {
+misere_tic_tac_toe_random_player<T>::misere_tic_tac_toe_random_player(T symbol) : RandomPlayer<T>(symbol) {
     this->dimension = 3;
     this->name = "Random Computer Player";
     srand(static_cast<unsigned int>(time(0)));
 }
 
 template <typename T>
-void random_Player<T>::getmove(int& x, int& y) {
+void misere_tic_tac_toe_random_player<T>::getmove(int& x, int& y) {
     x = rand() % this->dimension;
     y = rand() % this->dimension;
 }
 
-#endif
 
+#endif
