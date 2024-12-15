@@ -118,7 +118,7 @@ template <typename T>bool _4x4_tic_tac_toe_board<T>::is_win() {
 
 template <typename T>
 bool _4x4_tic_tac_toe_board<T>::is_draw() {
-	return (this->n_moves == 16 && !is_win());
+	return false;
 }
 
 template <typename T>
