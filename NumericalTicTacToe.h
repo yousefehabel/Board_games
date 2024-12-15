@@ -91,7 +91,7 @@ bool NumericalTicTacToeBoard<T>::update_board(int x, int y, T symbol) {
         return false;
     }
     while (true) {
-        cout << "Available numbers" ;
+        cout << "Available numbers: ";
         if (symbol == 'X'){
             for (const auto& n : AvailableNumbersP1)
             {
@@ -144,16 +144,16 @@ bool NumericalTicTacToeBoard<T>::update_board(int x, int y, T symbol) {
 // display the board
 template <typename T>
 void NumericalTicTacToeBoard<T>::display_board(){
-    for (int i = 0; i < this->rows; i++) {
-        cout << "\n| ";
-        for (int j = 0; j < this->columns; j++){
-            cout << "     ";
-            cout << setw(3) << this->board[i][j] << " |";
-        }
-        cout << "\n______________________________";
-    }
-    cout << "\n \n \n ";
-    cout << endl;
+	for (int i = 0; i < this->rows; ++i) {
+		cout << "\n+--------+--------+--------+\n";
+		for (int j = 0; j < this->columns; ++j) {
+			if (j == 0) cout << "|";
+			cout << setw(2) << "(" << i << "," << j << ")" << this->board[i][j] << " |";
+		}
+		if (i == 2) {
+			cout << "\n+--------+--------+--------+\n";
+		}
+	}
 }
 // check if player won
 template <typename T>
